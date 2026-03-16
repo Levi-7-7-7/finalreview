@@ -540,3 +540,138 @@
   color: var(--ap-muted);
   margin-top: 3px;
 }
+/* ═══════════════════════════════════════════════════
+   MOBILE OPTIMIZATION
+   ═══════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  /* Topbar */
+  .ap-topbar {
+    height: auto;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+  }
+
+  .ap-brand-text h1 {
+    font-size: 0.9rem;
+  }
+
+  .ap-brand-text p {
+    font-size: 0.7rem;
+  }
+
+  .ap-topbar-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  /* Navigation Tabs */
+  .ap-nav {
+    padding: 0 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ap-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ap-tab {
+    padding: 0.8rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  /* Content spacing */
+  .ap-content {
+    padding: 1rem 0.75rem;
+  }
+
+  /* Stats cards */
+  .ap-stats-row {
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+  }
+
+  .ap-stat-card {
+    padding: 1rem;
+  }
+
+  .ap-stat-val {
+    font-size: 1.3rem;
+  }
+
+  /* Grid sections */
+  .ap-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  /* Forms */
+  .ap-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ap-btn,
+  .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Tables */
+  .ap-table-wrap {
+    overflow-x: auto;
+  }
+
+  .ap-table {
+    min-width: 600px;
+  }
+
+  /* Category cards */
+  .ap-cat-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .ap-cat-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .ap-sub-item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.3rem;
+  }
+
+  /* Assign panel */
+  .ap-assign-panel {
+    padding: 1rem;
+  }
+
+}
+
+/* Extra small phones */
+@media (max-width: 480px) {
+
+  .ap-stats-row {
+    grid-template-columns: 1fr;
+  }
+
+  .ap-brand-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 0.8rem;
+  }
+
+  .ap-tab {
+    padding: 0.7rem 0.9rem;
+    font-size: 0.75rem;
+  }
+
+  .ap-card-body {
+    padding: 1rem;
+  }
+
+}
