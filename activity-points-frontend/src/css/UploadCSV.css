@@ -186,3 +186,107 @@
   color: #dc2626;
   border: 1px solid #fecaca;
 }
+/* ═══════════════════════════════════════
+   MOBILE OPTIMIZATION — Upload CSV
+   ═══════════════════════════════════════ */
+
+@media (max-width: 768px) {
+
+  .upload-csv-card {
+    max-width: 100%;
+    border-radius: 10px;
+  }
+
+  /* Header */
+  .upload-csv-header {
+    padding: 1rem;
+  }
+
+  .upload-csv-header h2 {
+    font-size: 0.95rem;
+  }
+
+  .upload-csv-sub {
+    font-size: 0.8rem;
+  }
+
+  /* Template box */
+  .csv-template-box {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 1rem;
+  }
+
+  .csv-template-btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Instructions */
+  .csv-instructions {
+    padding: 1rem;
+  }
+
+  .csv-format-row {
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.82rem;
+  }
+
+  .csv-format-row.example span {
+    word-break: break-all;
+  }
+
+  .csv-notes {
+    font-size: 0.78rem;
+  }
+
+  /* Upload section */
+  .upload-section {
+    padding: 1rem;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .file-input-label {
+    width: 100%;
+    justify-content: center;
+    min-width: unset;
+  }
+
+  .upload-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Result message */
+  .upload-result {
+    margin: 0 1rem 1rem;
+    font-size: 0.82rem;
+  }
+
+}
+
+
+/* Extra small phones */
+@media (max-width: 480px) {
+
+  .upload-csv-header h2 {
+    font-size: 0.9rem;
+  }
+
+  .csv-template-left strong {
+    font-size: 0.85rem;
+  }
+
+  .csv-template-left p {
+    font-size: 0.78rem;
+  }
+
+  .upload-btn {
+    font-size: 0.82rem;
+    padding: 0.55rem 1rem;
+  }
+
+}

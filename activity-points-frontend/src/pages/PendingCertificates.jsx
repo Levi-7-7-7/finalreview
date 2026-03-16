@@ -65,7 +65,7 @@ const PendingCertificates = () => {
   };
 
   if (loading) return <p className="pending-loading"><Loader2 className="spinner"/> Loading pending certificates…</p>;
-  if (!pendingCerts.length) return <p className="pending-loading">✅ No pending certificates right now.</p>;
+  if (!pendingCerts.length) return <p className="pending-loading"> No pending certificates right now.</p>;
 
   return (
     <div className="pending-container">

@@ -5,6 +5,7 @@
   box-sizing: border-box;
   font-family: 'Inter', sans-serif;
   padding: 1rem;
+  padding-bottom: 90px; /* space for bottom navbar */
 }
 
 /* Header */
@@ -158,5 +159,10 @@
 
   .nested-content {
     padding: 1rem;
+  }
+}
+@media (max-width: 768px) {
+  .tutor-dashboard {
+    padding-bottom: 110px; /* extra space for bottom nav */
   }
 }
