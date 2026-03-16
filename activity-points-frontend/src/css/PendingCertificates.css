@@ -1,0 +1,145 @@
+.pending-container {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.pending-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  justify-content: space-between;
+  gap: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.card-left {
+  flex: 2;
+}
+
+.card-right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 14px; /* 🔥 SAFE SPACING */
+  justify-content: center;
+}
+
+.student-name {
+  margin-bottom: 10px;
+}
+
+.level-info {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0;
+}
+
+.points {
+  margin-top: 8px;
+}
+
+.view-link {
+  display: inline-block;
+  margin-top: 14px;
+  padding: 10px 14px;
+  background-color: #2563eb;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.view-link:hover {
+  background-color: #1e4ed8;
+}
+
+/* Buttons */
+.btn-approve,
+.btn-reject {
+  padding: 14px;
+  border-radius: 10px;
+  border: none;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.btn-approve {
+  background-color: #16a34a;
+  color: white;
+}
+
+.btn-reject {
+  background-color: #dc2626;
+  color: white;
+}
+
+.btn-approve:hover,
+.btn-reject:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.btn-approve:disabled,
+.btn-reject:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Loading */
+.pending-loading {
+  text-align: center;
+  padding: 30px;
+  font-size: 16px;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Mobile safety */
+@media (max-width: 768px) {
+  .pending-card {
+    flex-direction: column;
+  }
+
+  .card-right {
+    flex-direction: column;
+  }
+}
+/* ===== IMPORTANT SCROLL FIX ===== */
+.pending-container {
+  padding-bottom: 120px; /* 🔥 allows scrolling past last button */
+}
+
+.cert-file-actions { margin-top: 0.5rem; }
+
+/* view-link used as <button> */
+button.view-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: none;
+  border: 1px solid #bfdbfe;
+  border-radius: 6px;
+  color: #2563eb;
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 4px 10px;
+  cursor: pointer;
+  transition: background .12s;
+}
+button.view-link:hover { background: #eff6ff; }
