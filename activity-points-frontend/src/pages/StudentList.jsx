@@ -181,8 +181,11 @@ const StudentList = () => {
                   <td>{s.branch?.name || '—'}</td>
                   <td className="sl-email">{s.email}</td>
                   <td>
-                    <span className={`sl-pts ${(s.totalPoints||0) >= 60 ? 'pass' : (s.totalPoints||0) >= 40 ? 'mid' : ''}`}>
-                      {s.totalPoints || 0}
+                    <span className={`sl-pts ${
+                      (s.totalPoints||0) >= (s.isLateralEntry ? 40 : 60) ? 'pass' :
+                      (s.totalPoints||0) >= (s.isLateralEntry ? 20 : 40) ? 'mid' : ''
+                    }`} title={s.isLateralEntry ? 'Lateral Entry (needs 40 pts)' : 'Regular (needs 60 pts)'}>
+                      {s.totalPoints || 0}{s.isLateralEntry ? ' ✦' : ''}
                     </span>
                   </td>
                   <td className="sl-action-cell">
@@ -206,6 +209,13 @@ const StudentList = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Legend */}
+      {students.some(s => s.isLateralEntry) && (
+        <div className="sl-legend">
+          <span className="sl-pts mid">✦</span> = Lateral Entry student (requires 40 pts instead of 60)
         </div>
       )}
     </div>

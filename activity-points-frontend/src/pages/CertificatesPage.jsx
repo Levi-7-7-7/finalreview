@@ -210,7 +210,18 @@ export default function CertificatesPage() {
 
             {cert.status?.toLowerCase() === 'rejected' && (
               <div className="rejected-reason">
-                <strong>Reason:</strong> {cert.rejectionReason || 'Certificate was rejected'}
+                <div className="rejected-reason-header">
+                  ❌ Certificate Rejected
+                </div>
+                <div className="rejected-reason-body">
+                  <strong>Tutor's reason:</strong>{' '}
+                  {cert.rejectionReason
+                    ? cert.rejectionReason
+                    : 'No reason provided. Please contact your tutor.'}
+                </div>
+                <div className="rejected-reason-action">
+                  You can re-upload a corrected certificate if needed.
+                </div>
               </div>
             )}
           </div>

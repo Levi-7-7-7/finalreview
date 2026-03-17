@@ -381,3 +381,37 @@
     padding: 10px 0;
   }
 }
+
+/* ── Enhanced rejection reason block ── */
+.rejected-reason {
+  margin-top: 12px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 1.5px solid #fca5a5;
+}
+
+.rejected-reason-header {
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  letter-spacing: .02em;
+}
+
+.rejected-reason-body {
+  background: #fef2f2;
+  color: #7f1d1d;
+  font-size: 0.85rem;
+  padding: 8px 12px;
+  line-height: 1.5;
+}
+
+.rejected-reason-action {
+  background: #fff1f2;
+  color: #9f1239;
+  font-size: 0.78rem;
+  font-style: italic;
+  padding: 5px 12px;
+  border-top: 1px solid #fecaca;
+}

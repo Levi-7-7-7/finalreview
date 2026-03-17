@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Loader2, Award, Eye, Download } from 'lucide-react';
+import { Loader2, Award, Eye, AlertCircle, X } from 'lucide-react';
 import tutorAxios from '../api/tutorAxios';
 import CertModal from '../components/CertModal';
 import '../css/PendingCertificates.css';
@@ -10,6 +10,11 @@ const PendingCertificates = () => {
   const [processingId, setProcessingId]   = useState(null);
   const [modalUrl, setModalUrl]           = useState(null);
   const [modalFile, setModalFile]         = useState('');
+
+  // Reject reason modal state
+  const [rejectingCert, setRejectingCert] = useState(null); // cert object
+  const [rejectReason, setRejectReason]   = useState('');
+  const [rejectError, setRejectError]     = useState('');
 
   const fetchPending = async () => {
     setLoading(true);
@@ -40,18 +45,47 @@ const PendingCertificates = () => {
     return 0;
   };
 
-  const handleAction = async (certId, action) => {
-    const msg = action === 'approve'
-      ? 'Approve this certificate?'
-      : 'Reject this certificate? This cannot be undone.';
-    if (!window.confirm(msg)) return;
-
+  // ── Approve (simple confirm) ──
+  const handleApprove = async (certId) => {
+    if (!window.confirm('Approve this certificate?')) return;
     setProcessingId(certId);
     try {
-      await tutorAxios.post(`/tutors/certificates/${certId}/${action}`);
+      await tutorAxios.post(`/tutors/certificates/${certId}/approve`);
       await fetchPending();
     } catch (err) {
-      alert(err.response?.data?.error || `Failed to ${action} certificate`);
+      alert(err.response?.data?.error || 'Failed to approve certificate');
+    } finally {
+      setProcessingId(null);
+    }
+  };
+
+  // ── Reject: open reason modal ──
+  const openRejectModal = (cert) => {
+    setRejectingCert(cert);
+    setRejectReason('');
+    setRejectError('');
+  };
+
+  const closeRejectModal = () => {
+    setRejectingCert(null);
+    setRejectReason('');
+    setRejectError('');
+  };
+
+  const submitReject = async () => {
+    if (!rejectReason.trim()) {
+      setRejectError('Please provide a reason for rejection so the student knows what to fix.');
+      return;
+    }
+    setProcessingId(rejectingCert._id);
+    closeRejectModal();
+    try {
+      await tutorAxios.post(`/tutors/certificates/${rejectingCert._id}/reject`, {
+        reason: rejectReason.trim(),
+      });
+      await fetchPending();
+    } catch (err) {
+      alert(err.response?.data?.error || 'Failed to reject certificate');
     } finally {
       setProcessingId(null);
     }
@@ -65,10 +99,16 @@ const PendingCertificates = () => {
   };
 
   if (loading) return <p className="pending-loading"><Loader2 className="spinner"/> Loading pending certificates…</p>;
-  if (!pendingCerts.length) return <p className="pending-loading"> No pending certificates right now.</p>;
+  if (!pendingCerts.length) return (
+    <div className="pending-loading" style={{ textAlign: 'center', padding: '3rem 1rem' }}>
+      <Award size={48} style={{ color: '#22c55e', marginBottom: '0.5rem' }} />
+      <p style={{ color: '#15803d', fontWeight: 600 }}>All caught up! No pending certificates.</p>
+    </div>
+  );
 
   return (
     <div className="pending-container">
+      {/* ── Image / PDF viewer modal ── */}
       {modalUrl && (
         <CertModal
           url={modalUrl}
@@ -77,6 +117,50 @@ const PendingCertificates = () => {
         />
       )}
 
+      {/* ── Reject reason modal ── */}
+      {rejectingCert && (
+        <div className="reject-overlay" onClick={e => { if (e.target === e.currentTarget) closeRejectModal(); }}>
+          <div className="reject-modal">
+            <div className="reject-modal-header">
+              <div className="reject-modal-title">
+                <AlertCircle size={20} className="reject-icon" />
+                <span>Reject Certificate</span>
+              </div>
+              <button className="reject-close-btn" onClick={closeRejectModal}><X size={18}/></button>
+            </div>
+
+            <div className="reject-modal-body">
+              <div className="reject-cert-info">
+                <strong>{rejectingCert.student?.name}</strong>
+                <span> — {rejectingCert.category?.name} / {rejectingCert.subcategory}</span>
+              </div>
+
+              <label className="reject-label">
+                Reason for rejection <span className="reject-required">*</span>
+                <span className="reject-hint">The student will see this message.</span>
+              </label>
+              <textarea
+                className="reject-textarea"
+                placeholder="e.g. Certificate image is blurry and unreadable. Please re-upload a clear scan."
+                value={rejectReason}
+                onChange={e => { setRejectReason(e.target.value); setRejectError(''); }}
+                rows={4}
+                autoFocus
+              />
+              {rejectError && <p className="reject-error"><AlertCircle size={13}/> {rejectError}</p>}
+            </div>
+
+            <div className="reject-modal-footer">
+              <button className="reject-cancel-btn" onClick={closeRejectModal}>Cancel</button>
+              <button className="reject-confirm-btn" onClick={submitReject}>
+                Reject Certificate
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Certificate cards ── */}
       {pendingCerts.map(cert => {
         const isProcessing = processingId === cert._id;
         const points       = getPotentialPoints(cert);
@@ -99,7 +183,6 @@ const PendingCertificates = () => {
 
               <p className="points"><strong>Points:</strong> {points} pts</p>
 
-              {/* FIX: view opens inline modal; download triggers actual file download */}
               <div className="cert-file-actions">
                 <button className="view-link" onClick={() => openModal(cert)}>
                   <Eye size={14}/> View Certificate
@@ -110,17 +193,23 @@ const PendingCertificates = () => {
             <div className="card-right">
               <button
                 className="btn-approve"
-                onClick={() => handleAction(cert._id, 'approve')}
+                onClick={() => handleApprove(cert._id)}
                 disabled={isProcessing}
               >
-                {isProcessing ? <><Loader2 size={14} className="spinner"/> Processing…</> : 'Approve'}
+                {isProcessing
+                  ? <><Loader2 size={14} className="spinner"/> Processing…</>
+                  : 'Approve'
+                }
               </button>
               <button
                 className="btn-reject"
-                onClick={() => handleAction(cert._id, 'reject')}
+                onClick={() => openRejectModal(cert)}
                 disabled={isProcessing}
               >
-                {isProcessing ? <><Loader2 size={14} className="spinner"/> Processing…</> : 'Reject'}
+                {isProcessing
+                  ? <><Loader2 size={14} className="spinner"/> Processing…</>
+                  : 'Reject'
+                }
               </button>
             </div>
           </div>

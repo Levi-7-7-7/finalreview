@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import tutorAxios from '../api/tutorAxios';
-import { Loader2, Award, Info, ArrowLeft, Eye, Download } from 'lucide-react';
+import { Loader2, Award, Info, ArrowLeft, Eye, CheckCircle, XCircle } from 'lucide-react';
 import CertModal from '../components/CertModal';
 import '../css/StudentDetails.css';
 
@@ -11,6 +11,7 @@ const StudentDetails = () => {
 
   const [certificates, setCertificates] = useState([]);
   const [categories, setCategories]     = useState([]);
+  const [studentInfo, setStudentInfo]   = useState(null); // full student record from tutor/students
   const [loading, setLoading]           = useState(true);
   const [filter, setFilter]             = useState('all');
   const [modalUrl, setModalUrl]         = useState(null);
@@ -19,16 +20,22 @@ const StudentDetails = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [certRes, catRes] = await Promise.all([
+        const [certRes, catRes, studentsRes] = await Promise.all([
           tutorAxios.get('/tutors/certificates'),
           tutorAxios.get('/categories'),
+          tutorAxios.get('/tutors/students'),
         ]);
+
         const allCerts     = certRes.data.certificates || [];
         const studentCerts = allCerts.filter(
           c => (c.student?._id || c.student) === studentId
         );
         setCertificates(studentCerts);
         setCategories(catRes.data.categories || []);
+
+        // Get full student info (includes isLateralEntry)
+        const found = (studentsRes.data.students || []).find(s => s._id === studentId);
+        setStudentInfo(found || null);
       } catch (err) {
         console.error('Error fetching student details:', err);
       } finally {
@@ -41,15 +48,17 @@ const StudentDetails = () => {
   const pointsSummary = useMemo(() => {
     const approvedCerts = certificates.filter(c => c.status?.toLowerCase() === 'approved');
     const rawTotal = approvedCerts.reduce((s, c) => s + (c.pointsAwarded || 0), 0);
-    const grouped  = approvedCerts.reduce((acc, cert) => {
+
+    const grouped = approvedCerts.reduce((acc, cert) => {
       const catId = cert.category?._id || cert.category;
       if (!acc[catId]) acc[catId] = [];
       acc[catId].push(cert);
       return acc;
     }, {});
+
     let cappedTotal = 0;
     Object.keys(grouped).forEach(catId => {
-      const catData = categories.find(c => c._id === catId);
+      const catData    = categories.find(c => c._id === catId);
       if (!catData) return;
       const certsInCat = grouped[catId];
       const catName    = catData.name.toLowerCase();
@@ -58,14 +67,23 @@ const StudentDetails = () => {
         : certsInCat.reduce((s, c) => s + (c.pointsAwarded || 0), 0);
       cappedTotal += Math.min(catSum, catData.maxPoints || 40);
     });
+
     return { rawTotal, cappedTotal };
   }, [certificates, categories]);
+
+  // Lateral entry students need 40 pts, regular students need 60 pts
+  const isLateralEntry = studentInfo?.isLateralEntry ?? false;
+  const requiredPoints = isLateralEntry ? 40 : 60;
+  const hasPassed      = pointsSummary.cappedTotal >= requiredPoints;
 
   const filteredCerts = filter === 'all'
     ? certificates
     : certificates.filter(c => c.status?.toLowerCase() === filter);
 
-  const student = certificates[0]?.student;
+  // Use studentInfo for name/reg (more reliable than cert.student)
+  const studentName = studentInfo?.name || certificates[0]?.student?.name || '—';
+  const studentReg  = studentInfo?.registerNumber || certificates[0]?.student?.registerNumber || '';
+  const studentEmail= studentInfo?.email || certificates[0]?.student?.email || '';
 
   const displayPoints = (cert) => {
     if (cert.status?.toLowerCase() === 'approved') return cert.pointsAwarded ?? 0;
@@ -84,7 +102,7 @@ const StudentDetails = () => {
 
   const openModal = (cert) => {
     const ext  = cert.fileUrl?.split('.').pop()?.split('?')[0] || 'jpg';
-    const name = `${student?.name || 'student'}_${cert.subcategory || 'cert'}.${ext}`;
+    const name = `${studentName}_${cert.subcategory || 'cert'}.${ext}`;
     setModalFile(name);
     setModalUrl(cert.fileUrl);
   };
@@ -110,29 +128,47 @@ const StudentDetails = () => {
         </div>
       ) : (
         <>
-          {student && (
-            <header className="student-profile-card">
-              <div className="profile-main">
-                <div className="avatar-circle">{student.name?.charAt(0)}</div>
-                <div className="profile-info">
-                  <h2>{student.name}</h2>
-                  <p className="reg-no">{student.registerNumber}</p>
-                  <p className="email-text">{student.email}</p>
-                </div>
+          {/* ── Profile card ── */}
+          <header className="student-profile-card">
+            <div className="profile-main">
+              <div className="avatar-circle">{studentName.charAt(0)}</div>
+              <div className="profile-info">
+                <h2>{studentName}</h2>
+                <p className="reg-no">{studentReg}</p>
+                <p className="email-text">{studentEmail}</p>
+                {isLateralEntry && (
+                  <span className="lateral-badge">Lateral Entry</span>
+                )}
               </div>
-              <div className="stats-grid">
-                <div className="stat-box raw">
-                  <span className="stat-label">Raw Total</span>
-                  <span className="stat-value">{pointsSummary.rawTotal}</span>
-                </div>
-                <div className="stat-box capped">
-                  <span className="stat-label">Capped Total <Info size={14} className="info-icon"/></span>
-                  <span className="stat-value">{pointsSummary.cappedTotal}</span>
-                </div>
-              </div>
-            </header>
-          )}
+            </div>
 
+            <div className="stats-grid">
+              <div className="stat-box raw">
+                <span className="stat-label">Raw Total</span>
+                <span className="stat-value">{pointsSummary.rawTotal}</span>
+              </div>
+              <div className="stat-box capped">
+                <span className="stat-label">
+                  Capped Total <Info size={14} className="info-icon"/>
+                </span>
+                <span className="stat-value">{pointsSummary.cappedTotal}</span>
+              </div>
+              {/* Lateral-entry-aware pass/fail indicator */}
+              <div className={`stat-box ${hasPassed ? 'pass' : 'fail'}`}>
+                <span className="stat-label">
+                  Status <span className="req-pts">({requiredPoints} pts req.)</span>
+                </span>
+                <span className="stat-value status-val">
+                  {hasPassed
+                    ? <><CheckCircle size={18}/> Pass</>
+                    : <><XCircle size={18}/> {requiredPoints - pointsSummary.cappedTotal} pts left</>
+                  }
+                </span>
+              </div>
+            </div>
+          </header>
+
+          {/* ── Certificates ── */}
           <section className="certificates-section">
             <div className="section-header">
               <h3>Certificates ({filteredCerts.length})</h3>
@@ -161,9 +197,22 @@ const StudentDetails = () => {
                     </div>
                     <div className="cert-body">
                       <p className="subcat"><strong>Subcategory:</strong> {cert.subcategory}</p>
+                      {(cert.level || cert.prizeType) && (
+                        <p className="subcat" style={{ color: '#64748b', fontSize: '0.8rem' }}>
+                          {cert.level}{cert.level && cert.prizeType ? ' · ' : ''}{cert.prizeType}
+                        </p>
+                      )}
                       <div className="points-badge">{displayPoints(cert)} pts</div>
                     </div>
-                    {/* FIX: inline view modal + real download button */}
+
+                    {/* Show rejection reason if rejected */}
+                    {cert.status?.toLowerCase() === 'rejected' && cert.rejectionReason && (
+                      <div className="cert-rejection-reason">
+                        <XCircle size={13} style={{ flexShrink: 0 }}/>
+                        <span><strong>Rejected:</strong> {cert.rejectionReason}</span>
+                      </div>
+                    )}
+
                     <div className="cert-footer">
                       <button className="view-doc" onClick={() => openModal(cert)}>
                         <Eye size={13}/> View

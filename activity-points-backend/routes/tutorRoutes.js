@@ -90,7 +90,8 @@ router.get('/students', tutorAuth, async (req, res) => {
 
     const students = await Student.find(query)
       .populate('batch',  'name')
-      .populate('branch', 'name');
+      .populate('branch', 'name')
+      .sort({ name: 1 }); // alphabetical order
 
     const categories = await Category.find();
 
